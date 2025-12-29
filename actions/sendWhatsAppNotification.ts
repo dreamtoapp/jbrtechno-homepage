@@ -16,6 +16,8 @@ export interface WhatsAppNotificationPayload {
   englishProficiency?: string | null;
   skills?: string[];
   message?: string;
+  lastSalary?: string | null;
+  expectedSalary?: string | null;
 }
 
 const formatDate = (value: Date | string | null | undefined): string | undefined => {
@@ -67,6 +69,9 @@ export async function sendWhatsAppNotification(
 
     const coverLetterSummary = truncate(payload.message, 200);
 
+    const lastSalary = payload.lastSalary?.trim() || undefined;
+    const expectedSalary = payload.expectedSalary?.trim() || undefined;
+
     const lines = [
       '🔔 طلب توظيف جديد',
       '',
@@ -80,6 +85,8 @@ export async function sendWhatsAppNotification(
         }`
         : undefined,
       topSkills ? `المهارات الرئيسية: ${topSkills}` : undefined,
+      lastSalary ? `الراتب السابق: ${lastSalary}` : undefined,
+      expectedSalary ? `الراتب المتوقع: ${expectedSalary}` : undefined,
       '',
       coverLetterSummary
         ? `القيمة التي سيضيفها المرشح:\n${coverLetterSummary}`

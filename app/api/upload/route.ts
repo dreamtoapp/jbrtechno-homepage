@@ -40,8 +40,28 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Upload error:', error);
+    
+    // Provide more specific error messages
+    let errorMessage = 'Failed to upload file. Please try again.';
+    
+    if (error instanceof Error) {
+      // Check for Cloudinary-specific errors
+      if (error.message.includes('Invalid API Key') || error.message.includes('401')) {
+        errorMessage = 'Upload service configuration error. Please contact support.';
+      } else if (error.message.includes('File size') || error.message.includes('too large')) {
+        errorMessage = 'File is too large. Please try a smaller file.';
+      } else if (error.message.includes('network') || error.message.includes('fetch')) {
+        errorMessage = 'Network error. Please check your connection and try again.';
+      } else if (error.message.includes('timeout')) {
+        errorMessage = 'Upload timed out. Please try again with a smaller file.';
+      } else if (error.message) {
+        // Use the error message if it's informative
+        errorMessage = error.message;
+      }
+    }
+    
     return NextResponse.json(
-      { error: 'Failed to upload file. Please try again.' },
+      { error: errorMessage },
       { status: 500 }
     );
   }

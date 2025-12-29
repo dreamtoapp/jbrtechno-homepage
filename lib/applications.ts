@@ -43,7 +43,7 @@ export async function getApplicationCountsByPosition(): Promise<ApplicationCount
     // Combine the results
     const countsMap = new Map<string, ApplicationCounts>();
 
-    applications.forEach((app) => {
+    applications.forEach((app: { position: string; _count: { id: number } }) => {
       countsMap.set(app.position, {
         position: app.position,
         pending: 0,
@@ -51,7 +51,7 @@ export async function getApplicationCountsByPosition(): Promise<ApplicationCount
       });
     });
 
-    pendingCounts.forEach((pending) => {
+    pendingCounts.forEach((pending: { position: string; _count: { id: number } }) => {
       const existing = countsMap.get(pending.position);
       if (existing) {
         existing.pending = pending._count.id;

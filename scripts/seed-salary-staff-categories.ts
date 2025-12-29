@@ -132,6 +132,11 @@ async function main() {
     desiredLabels.add(roleLabel(r.title, name));
   }
 
+  if (!salaryId) {
+    console.error('Failed to create or find Salary parent category');
+    return;
+  }
+
   const existingLabels = await getExistingChildLabels(salaryId);
 
   let createdCount = 0;

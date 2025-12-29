@@ -14,22 +14,43 @@ export interface UploadResult {
 
 export async function uploadCVToCloudinary(fileBuffer: Buffer, fileName: string): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
+    // Sanitize filename: remove extension, trim whitespace, replace spaces/special chars with underscores
+    const sanitizedFileName = fileName
+      .replace(/\.[^/.]+$/, '') // Remove extension
+      .trim() // Remove leading/trailing whitespace
+      .replace(/[^a-zA-Z0-9_-]/g, '_') // Replace special chars with underscore
+      .replace(/_+/g, '_') // Replace multiple underscores with single
+      .replace(/^_+|_+$/g, ''); // Remove leading/trailing underscores
+    
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: 'modonty/applications',
         resource_type: 'raw',
-        public_id: `cv_${Date.now()}_${fileName.replace(/\.[^/.]+$/, '')}`,
+        public_id: `cv_${Date.now()}_${sanitizedFileName}`,
       },
       (error, result) => {
         if (error) {
-          reject(error);
+          // Provide user-friendly error messages
+          let errorMessage = 'Failed to upload file. Please try again.';
+          if (error.message) {
+            if (error.message.includes('File size too large') || error.message.includes('413')) {
+              errorMessage = 'File is too large. Maximum file size is 5MB.';
+            } else if (error.message.includes('public_id') && error.message.includes('whitespace')) {
+              errorMessage = 'Invalid file name. Please rename the file and try again.';
+            } else if (error.message.includes('Invalid') || error.message.includes('401') || error.message.includes('403')) {
+              errorMessage = 'Upload service error. Please contact support if this persists.';
+            } else {
+              errorMessage = error.message;
+            }
+          }
+          reject(new Error(errorMessage));
         } else if (result) {
           resolve({
             url: result.secure_url,
             publicId: result.public_id,
           });
         } else {
-          reject(new Error('Upload failed: No result returned'));
+          reject(new Error('Upload failed: No result returned from upload service'));
         }
       }
     );
@@ -40,11 +61,19 @@ export async function uploadCVToCloudinary(fileBuffer: Buffer, fileName: string)
 
 export async function uploadImageToCloudinary(fileBuffer: Buffer, fileName: string): Promise<UploadResult> {
   return new Promise((resolve, reject) => {
+    // Sanitize filename: remove extension, trim whitespace, replace spaces/special chars with underscores
+    const sanitizedFileName = fileName
+      .replace(/\.[^/.]+$/, '') // Remove extension
+      .trim() // Remove leading/trailing whitespace
+      .replace(/[^a-zA-Z0-9_-]/g, '_') // Replace special chars with underscore
+      .replace(/_+/g, '_') // Replace multiple underscores with single
+      .replace(/^_+|_+$/g, ''); // Remove leading/trailing underscores
+    
     const uploadStream = cloudinary.uploader.upload_stream(
       {
         folder: 'modonty/applications/profiles',
         resource_type: 'image',
-        public_id: `profile_${Date.now()}_${fileName.replace(/\.[^/.]+$/, '')}`,
+        public_id: `profile_${Date.now()}_${sanitizedFileName}`,
         transformation: [
           { width: 400, height: 400, crop: 'fill', gravity: 'face' },
           { quality: 'auto', fetch_format: 'auto' }
@@ -52,14 +81,29 @@ export async function uploadImageToCloudinary(fileBuffer: Buffer, fileName: stri
       },
       (error, result) => {
         if (error) {
-          reject(error);
+          // Provide user-friendly error messages
+          let errorMessage = 'Failed to upload image. Please try again.';
+          if (error.message) {
+            if (error.message.includes('File size too large') || error.message.includes('413')) {
+              errorMessage = 'Image is too large. Maximum image size is 2MB.';
+            } else if (error.message.includes('public_id') && error.message.includes('whitespace')) {
+              errorMessage = 'Invalid file name. Please rename the image and try again.';
+            } else if (error.message.includes('Invalid') || error.message.includes('401') || error.message.includes('403')) {
+              errorMessage = 'Upload service error. Please contact support if this persists.';
+            } else if (error.message.includes('format') || error.message.includes('invalid image')) {
+              errorMessage = 'Invalid image format. Please upload a JPG, PNG, or WebP image.';
+            } else {
+              errorMessage = error.message;
+            }
+          }
+          reject(new Error(errorMessage));
         } else if (result) {
           resolve({
             url: result.secure_url,
             publicId: result.public_id,
           });
         } else {
-          reject(new Error('Upload failed: No result returned'));
+          reject(new Error('Upload failed: No result returned from upload service'));
         }
       }
     );

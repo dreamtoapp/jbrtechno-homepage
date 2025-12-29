@@ -37,6 +37,7 @@ export default function ApplyPage() {
   const [submitting, setSubmitting] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [uploadError, setUploadError] = useState<string | null>(null);
+  const [profileImageError, setProfileImageError] = useState<string | null>(null);
   const [showSuccessDialog, setShowSuccessDialog] = useState(false);
 
   const [formData, setFormData] = useState({
@@ -58,6 +59,16 @@ export default function ApplyPage() {
     cvPublicId: '',
     profileImageUrl: '',
     profileImagePublicId: '',
+    lastJobExitReason: '',
+    lastSalary: '',
+    expectedSalary: '',
+    canWorkHard: false,
+    noticePeriod: '',
+    preferredWorkLocation: '' as '' | 'OFFICE' | 'REMOTE' | 'HYBRID',
+    whyInterestedInPosition: '',
+    questionsAboutRole: '',
+    willingnessToRelocate: false,
+    bestInterviewTime: '',
   });
 
   if (!position) {
@@ -126,6 +137,41 @@ export default function ApplyPage() {
       return;
     }
 
+    if (!formData.whyInterestedInPosition.trim() || formData.whyInterestedInPosition.trim().length < 20) {
+      setError(t('errorWhyInterestedInPosition'));
+      return;
+    }
+
+    if (!formData.lastJobExitReason.trim() || formData.lastJobExitReason.trim().length < 10) {
+      setError(t('errorLastJobExitReason'));
+      return;
+    }
+
+    if (!formData.lastSalary.trim()) {
+      setError(t('errorLastSalary'));
+      return;
+    }
+
+    if (!formData.expectedSalary.trim()) {
+      setError(t('errorExpectedSalary'));
+      return;
+    }
+
+    if (!formData.noticePeriod.trim() || formData.noticePeriod.trim().length < 3) {
+      setError(t('errorNoticePeriod'));
+      return;
+    }
+
+    if (!formData.preferredWorkLocation) {
+      setError(t('errorPreferredWorkLocation'));
+      return;
+    }
+
+    if (!formData.bestInterviewTime.trim() || formData.bestInterviewTime.trim().length < 3) {
+      setError(t('errorBestInterviewTime'));
+      return;
+    }
+
     setSubmitting(true);
 
     try {
@@ -152,6 +198,16 @@ export default function ApplyPage() {
         profileImageUrl: formData.profileImageUrl,
         profileImagePublicId: formData.profileImagePublicId,
         locale: locale === 'ar' ? 'ar' : 'en',
+        lastJobExitReason: formData.lastJobExitReason,
+        lastSalary: formData.lastSalary,
+        expectedSalary: formData.expectedSalary,
+        canWorkHard: formData.canWorkHard || undefined,
+        noticePeriod: formData.noticePeriod,
+        preferredWorkLocation: formData.preferredWorkLocation,
+        whyInterestedInPosition: formData.whyInterestedInPosition,
+        questionsAboutRole: formData.questionsAboutRole || '',
+        willingnessToRelocate: formData.willingnessToRelocate || undefined,
+        bestInterviewTime: formData.bestInterviewTime,
       });
 
       if (result.success) {
@@ -278,33 +334,20 @@ export default function ApplyPage() {
 
       {/* Application Form - Only shows after acknowledgement */}
       {acknowledged && (
-        <Card className="animate-in fade-in slide-in-from-top-4 duration-500">
-          <CardHeader>
-            <CardTitle>{t('applicationForm')}</CardTitle>
-            <CardDescription>{t('fillAllFields')}</CardDescription>
-          </CardHeader>
-          <CardContent>
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {error && (
-                <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm">
-                  {error}
-                </div>
-              )}
+        <form onSubmit={handleSubmit} className="space-y-6 animate-in fade-in slide-in-from-top-4 duration-500">
+          {error && (
+            <div className="p-4 bg-destructive/10 text-destructive rounded-lg text-sm border border-destructive/20">
+              {error}
+            </div>
+          )}
 
-              <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t('profileImage')} <span className="text-destructive">*</span>
-                </label>
-                <ProfileImageUpload
-                  onUploadSuccess={(url, publicId) => {
-                    setFormData((prev) => ({ ...prev, profileImageUrl: url, profileImagePublicId: publicId }));
-                  }}
-                  onUploadError={(err) => console.error('Image upload error:', err)}
-                  disabled={submitting}
-                />
-                <p className="text-xs text-muted-foreground">{t('profileImageHelp')}</p>
-              </div>
-
+          {/* Personal Information */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionPersonalInformation')}</CardTitle>
+              <CardDescription>{t('sectionPersonalInformationDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label htmlFor="applicantName" className="text-sm font-medium">
@@ -358,6 +401,34 @@ export default function ApplyPage() {
                 </div>
 
                 <div className="space-y-2">
+                  <label htmlFor="currentLocation" className="text-sm font-medium">
+                    {t('currentLocation')} <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="currentLocation"
+                    name="currentLocation"
+                    type="text"
+                    autoComplete="address-level2"
+                    required
+                    value={formData.currentLocation}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder={t('currentLocationPlaceholder')}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Professional Profile */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionProfessionalProfile')}</CardTitle>
+              <CardDescription>{t('sectionProfessionalProfileDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
                   <label htmlFor="yearsOfExperience" className="text-sm font-medium">
                     {t('yearsOfExperience')} <span className="text-destructive">*</span>
                   </label>
@@ -383,86 +454,21 @@ export default function ApplyPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label htmlFor="portfolioUrl" className="text-sm font-medium">
-                    {t('portfolioUrl')}
+                  <label htmlFor="skills" className="text-sm font-medium">
+                    {t('skills')} <span className="text-destructive">*</span>
                   </label>
                   <input
-                    id="portfolioUrl"
-                    name="portfolioUrl"
-                    type="url"
-                    autoComplete="url"
-                    value={formData.portfolioUrl}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-md bg-background"
-                    placeholder="https://"
-                  />
-                </div>
-
-                <div className="space-y-2">
-                  <label htmlFor="githubUrl" className="text-sm font-medium">
-                    {t('githubUrl')}
-                  </label>
-                  <input
-                    id="githubUrl"
-                    name="githubUrl"
-                    type="url"
-                    autoComplete="url"
-                    value={formData.githubUrl}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-md bg-background"
-                    placeholder="https://github.com/"
-                  />
-                </div>
-
-                <div className="space-y-2 md:col-span-2">
-                  <label htmlFor="linkedinUrl" className="text-sm font-medium">
-                    {t('linkedinUrl')}
-                  </label>
-                  <input
-                    id="linkedinUrl"
-                    name="linkedinUrl"
-                    type="url"
-                    autoComplete="url"
-                    value={formData.linkedinUrl}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-md bg-background"
-                    placeholder="https://linkedin.com/in/"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div className="space-y-2">
-                  <label htmlFor="availabilityDate" className="text-sm font-medium">
-                    {t('availabilityDate')} <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    id="availabilityDate"
-                    name="availabilityDate"
-                    type="date"
+                    id="skills"
+                    name="skills"
+                    type="text"
                     autoComplete="off"
                     required
-                    value={formData.availabilityDate}
+                    value={formData.skills}
                     onChange={handleInputChange}
                     className="w-full px-3 py-2 border rounded-md bg-background"
-                    placeholder={t('availabilityDatePlaceholder')}
+                    placeholder={t('skillsPlaceholder')}
                   />
-                </div>
-                <div className="space-y-2">
-                  <label htmlFor="currentLocation" className="text-sm font-medium">
-                    {t('currentLocation')} <span className="text-destructive">*</span>
-                  </label>
-                  <input
-                    id="currentLocation"
-                    name="currentLocation"
-                    type="text"
-                    autoComplete="address-level2"
-                    required
-                    value={formData.currentLocation}
-                    onChange={handleInputChange}
-                    className="w-full px-3 py-2 border rounded-md bg-background"
-                    placeholder={t('currentLocationPlaceholder')}
-                  />
+                  <p className="text-xs text-muted-foreground">{t('skillsHelp')}</p>
                 </div>
               </div>
 
@@ -512,25 +518,119 @@ export default function ApplyPage() {
                   </Select>
                 </div>
               </div>
+            </CardContent>
+          </Card>
 
+          {/* Portfolio & Links */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionPortfolioLinks')}</CardTitle>
+              <CardDescription>{t('sectionPortfolioLinksDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="portfolioUrl" className="text-sm font-medium">
+                    {t('portfolioUrl')}
+                  </label>
+                  <input
+                    id="portfolioUrl"
+                    name="portfolioUrl"
+                    type="url"
+                    autoComplete="url"
+                    value={formData.portfolioUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder="https://"
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="githubUrl" className="text-sm font-medium">
+                    {t('githubUrl')}
+                  </label>
+                  <input
+                    id="githubUrl"
+                    name="githubUrl"
+                    type="url"
+                    autoComplete="url"
+                    value={formData.githubUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder="https://github.com/"
+                  />
+                </div>
+
+                <div className="space-y-2 md:col-span-2">
+                  <label htmlFor="linkedinUrl" className="text-sm font-medium">
+                    {t('linkedinUrl')}
+                  </label>
+                  <input
+                    id="linkedinUrl"
+                    name="linkedinUrl"
+                    type="url"
+                    autoComplete="url"
+                    value={formData.linkedinUrl}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder="https://linkedin.com/in/"
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Documents */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionDocuments')}</CardTitle>
+              <CardDescription>{t('sectionDocumentsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="space-y-2">
-                <label htmlFor="skills" className="text-sm font-medium">
-                  {t('skills')} <span className="text-destructive">*</span>
+                <label className="text-sm font-medium">
+                  {t('profileImage')} <span className="text-destructive">*</span>
                 </label>
-                <input
-                  id="skills"
-                  name="skills"
-                  type="text"
-                  autoComplete="off"
-                  required
-                  value={formData.skills}
-                  onChange={handleInputChange}
-                  className="w-full px-3 py-2 border rounded-md bg-background"
-                  placeholder={t('skillsPlaceholder')}
+                <ProfileImageUpload
+                  onUploadSuccess={(url, publicId) => {
+                    setFormData((prev) => ({ ...prev, profileImageUrl: url, profileImagePublicId: publicId }));
+                    setProfileImageError(null);
+                  }}
+                  onUploadError={(err) => setProfileImageError(err)}
+                  disabled={submitting}
                 />
-                <p className="text-xs text-muted-foreground">{t('skillsHelp')}</p>
+                {profileImageError && (
+                  <p className="text-sm text-destructive">{profileImageError}</p>
+                )}
+                <p className="text-xs text-muted-foreground">{t('profileImageHelp')}</p>
               </div>
 
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t('cvUpload')} <span className="text-destructive">*</span>
+                </label>
+                <CVUpload
+                  onUploadSuccess={(url, publicId) => {
+                    setFormData((prev) => ({ ...prev, cvUrl: url, cvPublicId: publicId }));
+                    setUploadError(null);
+                  }}
+                  onUploadError={(err) => setUploadError(err)}
+                  disabled={submitting}
+                />
+                {uploadError && (
+                  <p className="text-sm text-destructive">{uploadError}</p>
+                )}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Motivation & Application */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionMotivation')}</CardTitle>
+              <CardDescription>{t('sectionMotivationDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
               <div className="space-y-2">
                 <label htmlFor="coverLetter" className="text-sm font-medium">
                   {t('coverLetter')} <span className="text-destructive">*</span>
@@ -554,65 +654,286 @@ export default function ApplyPage() {
               </div>
 
               <div className="space-y-2">
-                <label className="text-sm font-medium">
-                  {t('cvUpload')} <span className="text-destructive">*</span>
+                <label htmlFor="whyInterestedInPosition" className="text-sm font-medium">
+                  {t('whyInterestedInPosition')} <span className="text-destructive">*</span>
                 </label>
-                <CVUpload
-                  onUploadSuccess={(url, publicId) => {
-                    setFormData((prev) => ({ ...prev, cvUrl: url, cvPublicId: publicId }));
-                    setUploadError(null);
-                  }}
-                  onUploadError={(err) => setUploadError(err)}
-                  disabled={submitting}
+                <textarea
+                  id="whyInterestedInPosition"
+                  name="whyInterestedInPosition"
+                  required
+                  rows={4}
+                  value={formData.whyInterestedInPosition}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md bg-background resize-y"
+                  placeholder={t('whyInterestedInPositionPlaceholder')}
+                  maxLength={500}
+                  autoComplete="off"
                 />
-                {uploadError && (
-                  <p className="text-sm text-destructive">{uploadError}</p>
-                )}
+                <p className="text-xs text-muted-foreground">
+                  {formData.whyInterestedInPosition.length}/500 {t('characters')} {formData.whyInterestedInPosition.length < 20 && `(${t('minimum')}: 20)`}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Employment History */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionEmploymentHistory')}</CardTitle>
+              <CardDescription>{t('sectionEmploymentHistoryDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="lastJobExitReason" className="text-sm font-medium">
+                  {t('lastJobExitReason')} <span className="text-destructive">*</span>
+                </label>
+                <textarea
+                  id="lastJobExitReason"
+                  name="lastJobExitReason"
+                  required
+                  rows={4}
+                  value={formData.lastJobExitReason}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md bg-background resize-y"
+                  placeholder={t('lastJobExitReasonPlaceholder')}
+                  maxLength={1000}
+                  autoComplete="off"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formData.lastJobExitReason.length}/1000 {t('characters')} {formData.lastJobExitReason.length < 10 && `(${t('minimum')}: 10)`}
+                </p>
               </div>
 
-              <div className="pt-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="lastSalary" className="text-sm font-medium">
+                    {t('lastSalary')} <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="lastSalary"
+                    name="lastSalary"
+                    type="text"
+                    required
+                    value={formData.lastSalary}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder={t('lastSalaryPlaceholder')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="expectedSalary" className="text-sm font-medium">
+                    {t('expectedSalary')} <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="expectedSalary"
+                    name="expectedSalary"
+                    type="text"
+                    required
+                    value={formData.expectedSalary}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder={t('expectedSalaryPlaceholder')}
+                  />
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Work Preferences */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionWorkPreferences')}</CardTitle>
+              <CardDescription>{t('sectionWorkPreferencesDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-2">
+                  <label htmlFor="availabilityDate" className="text-sm font-medium">
+                    {t('availabilityDate')} <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="availabilityDate"
+                    name="availabilityDate"
+                    type="date"
+                    autoComplete="off"
+                    required
+                    value={formData.availabilityDate}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder={t('availabilityDatePlaceholder')}
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label htmlFor="noticePeriod" className="text-sm font-medium">
+                    {t('noticePeriod')} <span className="text-destructive">*</span>
+                  </label>
+                  <input
+                    id="noticePeriod"
+                    name="noticePeriod"
+                    type="text"
+                    required
+                    value={formData.noticePeriod}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border rounded-md bg-background"
+                    placeholder={t('noticePeriodPlaceholder')}
+                  />
+                </div>
+              </div>
+
+              <div className="space-y-2">
+                <label className="text-sm font-medium">
+                  {t('preferredWorkLocation')} <span className="text-destructive">*</span>
+                </label>
+                <Select
+                  value={formData.preferredWorkLocation}
+                  onValueChange={(value: 'OFFICE' | 'REMOTE' | 'HYBRID') =>
+                    setFormData((prev) => ({ ...prev, preferredWorkLocation: value }))
+                  }
+                >
+                  <SelectTrigger className="w-full">
+                    <SelectValue placeholder={t('preferredWorkLocationPlaceholder')} />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="OFFICE">{t('workLocationOffice')}</SelectItem>
+                    <SelectItem value="REMOTE">{t('workLocationRemote')}</SelectItem>
+                    <SelectItem value="HYBRID">{t('workLocationHybrid')}</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="space-y-3 pt-2">
                 <label className="flex items-start gap-3 cursor-pointer">
                   <Checkbox
-                    checked={formData.consentToDataUsage}
+                    checked={formData.willingnessToRelocate}
                     onCheckedChange={(checked) =>
                       setFormData((prev) => ({
                         ...prev,
-                        consentToDataUsage: checked === true,
+                        willingnessToRelocate: checked === true,
                       }))
                     }
                   />
                   <span className="text-sm leading-relaxed text-muted-foreground">
-                    {t('consentCopy')}
+                    {t('willingnessToRelocate')}
+                  </span>
+                </label>
+
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <Checkbox
+                    checked={formData.canWorkHard}
+                    onCheckedChange={(checked) =>
+                      setFormData((prev) => ({
+                        ...prev,
+                        canWorkHard: checked === true,
+                      }))
+                    }
+                  />
+                  <span className="text-sm leading-relaxed text-muted-foreground">
+                    {t('canWorkHard')}
                   </span>
                 </label>
               </div>
+            </CardContent>
+          </Card>
 
-              <div className="pt-2">
-                <Button
-                  type="submit"
-                  size="lg"
-                  className="w-full"
-                  disabled={
-                    submitting ||
-                    !acknowledged ||
-                    !formData.cvUrl ||
-                    !formData.profileImageUrl ||
-                    !formData.consentToDataUsage
-                  }
-                >
-                  {submitting ? (
-                    <>
-                      <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                      {t('submitting')}
-                    </>
-                  ) : (
-                    t('submitApplication')
-                  )}
-                </Button>
+          {/* Interview Details */}
+          <Card>
+            <CardHeader>
+              <CardTitle className="text-xl">{t('sectionInterviewDetails')}</CardTitle>
+              <CardDescription>{t('sectionInterviewDetailsDesc')}</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-6">
+              <div className="space-y-2">
+                <label htmlFor="bestInterviewTime" className="text-sm font-medium">
+                  {t('bestInterviewTime')} <span className="text-destructive">*</span>
+                </label>
+                <input
+                  id="bestInterviewTime"
+                  name="bestInterviewTime"
+                  type="text"
+                  required
+                  value={formData.bestInterviewTime}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md bg-background"
+                  placeholder={t('bestInterviewTimePlaceholder')}
+                  maxLength={200}
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formData.bestInterviewTime.length}/200 {t('characters')}
+                </p>
               </div>
-            </form>
-          </CardContent>
-        </Card>
+
+              <div className="space-y-2">
+                <label htmlFor="questionsAboutRole" className="text-sm font-medium">
+                  {t('questionsAboutRole')}
+                </label>
+                <textarea
+                  id="questionsAboutRole"
+                  name="questionsAboutRole"
+                  rows={3}
+                  value={formData.questionsAboutRole}
+                  onChange={handleInputChange}
+                  className="w-full px-3 py-2 border rounded-md bg-background resize-y"
+                  placeholder={t('questionsAboutRolePlaceholder')}
+                  maxLength={500}
+                  autoComplete="off"
+                />
+                <p className="text-xs text-muted-foreground">
+                  {formData.questionsAboutRole.length}/500 {t('characters')}
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Consent & Submission */}
+          <Card>
+            <CardContent className="pt-6">
+              <div className="space-y-6">
+                <div>
+                  <label className="flex items-start gap-3 cursor-pointer">
+                    <Checkbox
+                      checked={formData.consentToDataUsage}
+                      onCheckedChange={(checked) =>
+                        setFormData((prev) => ({
+                          ...prev,
+                          consentToDataUsage: checked === true,
+                        }))
+                      }
+                    />
+                    <span className="text-sm leading-relaxed text-muted-foreground">
+                      {t('consentCopy')}
+                    </span>
+                  </label>
+                </div>
+
+                <div className="pt-2">
+                  <Button
+                    type="submit"
+                    size="lg"
+                    className="w-full"
+                    disabled={
+                      submitting ||
+                      !acknowledged ||
+                      !formData.cvUrl ||
+                      !formData.profileImageUrl ||
+                      !formData.consentToDataUsage
+                    }
+                  >
+                    {submitting ? (
+                      <>
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                        {t('submitting')}
+                      </>
+                    ) : (
+                      t('submitApplication')
+                    )}
+                  </Button>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </form>
       )}
 
       {/* Success Dialog */}

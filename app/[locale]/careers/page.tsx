@@ -125,6 +125,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                   {vacantPositions.map((position, index) => {
                     const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
                     const PhaseIcon = getPhaseIcon(position.phase);
+                    const isMarketingSpecialist = position.title === 'أخصائي تسويق رقمي' || position.titleEn === 'Digital Marketing Specialist';
                     return (
                       <a
                         key={index}
@@ -148,6 +149,15 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                           <Badge variant="secondary" className="text-xs">
                             ×{position.count}
                           </Badge>
+                        )}
+                        {isMarketingSpecialist && (
+                          <div className="relative">
+                            <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
+                            <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-[10px] px-2.5 py-1 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
+                              <Sparkles className="h-2.5 w-2.5 mr-1 animate-spin" />
+                              {locale === 'ar' ? '✨ التقديم مفتوح' : '✨ Apply Open'}
+                            </Badge>
+                          </div>
                         )}
                         <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
                       </a>
@@ -679,6 +689,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                   const isFilled = !!position.filledBy;
                   const requirements = locale === 'ar' ? position.requirements : position.requirementsEn;
                   const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
+                  const isMarketingSpecialist = position.title === 'أخصائي تسويق رقمي' || position.titleEn === 'Digital Marketing Specialist';
                   return (
                     <Card
                       key={index}
@@ -726,6 +737,15 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                                     {t('positions.vacant')}
                                   </Badge>
                                 </>
+                              )}
+                              {isMarketingSpecialist && !isFilled && (
+                                <div className="relative">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
+                                  <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-xs px-4 py-2 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
+                                    <Sparkles className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                                    {locale === 'ar' ? '✨ التقديم مفتوح' : '✨ Apply Open'}
+                                  </Badge>
+                                </div>
                               )}
                             </div>
                           </div>

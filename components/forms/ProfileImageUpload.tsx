@@ -17,6 +17,7 @@ export function ProfileImageUpload({ onUploadSuccess, onUploadError, disabled }:
   const [uploadProgress, setUploadProgress] = useState(0);
   const [imageUrl, setImageUrl] = useState<string | null>(null);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dragActive, setDragActive] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -24,8 +25,10 @@ export function ProfileImageUpload({ onUploadSuccess, onUploadError, disabled }:
     // Validate image
     const validation = validateImage(file);
     if (!validation.valid) {
+      const error = validation.error || 'Invalid image';
+      setErrorMessage(error);
       setUploadStatus('error');
-      onUploadError(validation.error || 'Invalid image');
+      onUploadError(error);
       return;
     }
 
@@ -61,10 +64,15 @@ export function ProfileImageUpload({ onUploadSuccess, onUploadError, disabled }:
       clearInterval(progressInterval);
       setUploadProgress(100);
 
-      const data = await response.json();
+      let data;
+      try {
+        data = await response.json();
+      } catch (jsonError) {
+        throw new Error(`Server error (${response.status}). Please try again.`);
+      }
 
       if (!response.ok) {
-        throw new Error(data.error || 'Upload failed');
+        throw new Error(data.error || `Upload failed (${response.status})`);
       }
 
       setUploadStatus('success');
@@ -72,8 +80,24 @@ export function ProfileImageUpload({ onUploadSuccess, onUploadError, disabled }:
       onUploadSuccess(data.url, data.publicId);
     } catch (error) {
       console.error('Upload error:', error);
+      
+      let errorMsg = 'Upload failed. Please try again.';
+      
+      if (error instanceof Error) {
+        // Handle network errors
+        if (error.message.includes('Failed to fetch') || error.message.includes('NetworkError')) {
+          errorMsg = 'Network error. Please check your internet connection and try again.';
+        } else if (error.message.includes('timeout')) {
+          errorMsg = 'Upload timed out. Please try again with a smaller file.';
+        } else {
+          // Use the error message from the API or the error itself
+          errorMsg = error.message;
+        }
+      }
+      
+      setErrorMessage(errorMsg);
       setUploadStatus('error');
-      onUploadError(error instanceof Error ? error.message : 'Upload failed');
+      onUploadError(errorMsg);
       setImageUrl(null);
     } finally {
       setUploading(false);
@@ -111,6 +135,7 @@ export function ProfileImageUpload({ onUploadSuccess, onUploadError, disabled }:
     setImageUrl(null);
     setUploadProgress(0);
     setUploadStatus('idle');
+    setErrorMessage(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = '';
     }
@@ -229,7 +254,7 @@ export function ProfileImageUpload({ onUploadSuccess, onUploadError, disabled }:
             <AlertCircle className="h-10 w-10 text-destructive flex-shrink-0" />
             <div className="flex-1">
               <p className="text-sm font-semibold text-destructive">Upload Failed</p>
-              <p className="text-xs text-muted-foreground">Please try again</p>
+              <p className="text-xs text-muted-foreground mt-0.5">{errorMessage || 'Please try again'}</p>
             </div>
             <Button
               type="button"

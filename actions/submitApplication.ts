@@ -46,6 +46,17 @@ export async function submitApplication(
         profileImagePublicId: validatedData.profileImagePublicId,
         locale: validatedData.locale,
         status: 'PENDING',
+        lastJobExitReason: validatedData.lastJobExitReason,
+        lastSalary: validatedData.lastSalary,
+        expectedSalary: validatedData.expectedSalary,
+        canWorkHard: validatedData.canWorkHard ?? null,
+        noticePeriod: validatedData.noticePeriod,
+        preferredWorkLocation: validatedData.preferredWorkLocation,
+        whyInterestedInPosition: validatedData.whyInterestedInPosition,
+        questionsAboutRole: validatedData.questionsAboutRole || null,
+        willingnessToRelocate: validatedData.willingnessToRelocate ?? null,
+        bestInterviewTime: validatedData.bestInterviewTime,
+        interviewResponseSubmittedAt: new Date(),
       },
     });
 
@@ -62,6 +73,8 @@ export async function submitApplication(
       englishProficiency: validatedData.englishProficiency,
       skills: validatedData.skills,
       message: validatedData.coverLetter,
+      lastSalary: validatedData.lastSalary,
+      expectedSalary: validatedData.expectedSalary,
     });
 
     return {
