@@ -35,6 +35,19 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
     }
   };
 
+  // Check if position should show "Apply Open" badge
+  const isOpenForApplication = (position: { title: string; titleEn: string }) => {
+    const openPositions = [
+      { ar: 'أخصائي تسويق رقمي', en: 'Digital Marketing Specialist' },
+      { ar: 'أخصائي SEO', en: 'SEO Specialist' },
+      { ar: 'كاتب محتوى', en: 'Content Writer' },
+      { ar: 'مدير حسابات', en: 'Account Manager' },
+    ];
+    return openPositions.some(
+      (p) => position.title === p.ar || position.titleEn === p.en
+    );
+  };
+
   return (
     <PublicShell>
       <div className="min-h-screen bg-gradient-to-b from-background via-primary/[0.02] to-background">
@@ -125,7 +138,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                   {vacantPositions.map((position, index) => {
                     const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
                     const PhaseIcon = getPhaseIcon(position.phase);
-                    const isMarketingSpecialist = position.title === 'أخصائي تسويق رقمي' || position.titleEn === 'Digital Marketing Specialist';
+                    const isOpenForApply = isOpenForApplication(position);
                     return (
                       <a
                         key={index}
@@ -150,7 +163,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                             ×{position.count}
                           </Badge>
                         )}
-                        {isMarketingSpecialist && (
+                        {isOpenForApply && (
                           <div className="relative">
                             <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
                             <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-[10px] px-2.5 py-1 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
@@ -331,6 +344,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                 const isFilled = !!position.filledBy;
                 const requirements = locale === 'ar' ? position.requirements : position.requirementsEn;
                 const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
+                const isOpenForApply = isOpenForApplication(position);
                 return (
                   <Card
                     key={index}
@@ -374,115 +388,20 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                                 <Badge variant="default" className="shadow-sm">
                                   {position.count} {locale === 'ar' ? 'وظيفة' : 'position(s)'}
                                 </Badge>
-                                <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
-                                  {t('positions.vacant')}
-                                </Badge>
-                              </>
-                            )}
-                          </div>
-                        </div>
-                      </div>
-                    </CardHeader>
-                    <CardContent className="space-y-4">
-                      <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
-                        <ul className="space-y-2">
-                          {requirements.map((req, idx) => {
-                            const isBonus = req.startsWith('⭐');
-                            const isSection = req.startsWith('---');
-                            const isEmpty = req.trim() === '';
-                            const cleanReq = isBonus ? req.substring(2).trim() : req.replace(/^---\s*/, '').replace(/\s*---$/, '').trim();
-
-                            if (isEmpty) {
-                              return <li key={idx} className="h-2" />;
-                            }
-
-                            if (isSection) {
-                              return (
-                                <li key={idx} className="pt-3 pb-1.5 first:pt-0">
-                                  <h4 className="text-xs font-bold uppercase tracking-wider text-primary/90 flex items-center gap-2">
-                                    <div className="h-px flex-1 bg-primary/20" />
-                                    {cleanReq}
-                                    <div className="h-px flex-1 bg-primary/20" />
-                                  </h4>
-                                </li>
-                              );
-                            }
-
-                            return (
-                              <li key={idx} className="text-sm flex items-start gap-2.5 pl-1 group/item">
-                                <CheckCircle2 className="h-3.5 w-3.5 text-primary/70 mt-0.5 flex-shrink-0 group-hover/item:text-primary transition-colors" />
-                                <span className="text-muted-foreground leading-relaxed">
-                                  {isBonus && <span className="text-yellow-600 dark:text-yellow-400">⭐ </span>}
-                                  {cleanReq}
-                                </span>
-                              </li>
-                            );
-                          })}
-                        </ul>
-                      </div>
-                      {!isFilled && (
-                        <div className="pt-4 border-t">
-                          <Link href={`/${locale}/careers/apply/${encodeURIComponent(locale === 'ar' ? position.title : position.titleEn)}`}>
-                            <Button className="w-full group/btn relative overflow-hidden" size="lg">
-                              <span className="relative z-10 flex items-center justify-center gap-2">
-                                <Send className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                                {t('positions.applyNow')}
-                                <TrendingUp className="h-4 w-4 group-hover/btn:translate-y-[-2px] transition-transform" />
-                              </span>
-                              <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/10 to-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-                            </Button>
-                          </Link>
-                        </div>
-                      )}
-                    </CardContent>
-                  </Card>
-                );
-              })}
-            </div>
-          </section>
-
-          {/* Content Team */}
-          {contentPositions.length > 0 && (
-            <section className="space-y-6">
-              <div className="flex items-center gap-3 pb-4 border-b-2">
-                <div className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-500/5">
-                  <PenTool className="h-6 w-6 text-pink-600 dark:text-pink-400" />
-                </div>
-                <div>
-                  <h3 className="text-3xl font-bold">{t('positions.content')}</h3>
-                  <p className="text-sm text-muted-foreground">{contentPositions.length} {locale === 'ar' ? 'وظيفة' : 'positions'}</p>
-                </div>
-              </div>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {contentPositions.map((position, index) => {
-                  const requirements = locale === 'ar' ? position.requirements : position.requirementsEn;
-                  const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
-                  return (
-                    <Card
-                      key={index}
-                      id={positionId}
-                      className="scroll-mt-24 border-2 border-border hover:border-primary/40 bg-card transition-all duration-300 hover:shadow-xl group hover:-translate-y-1"
-                    >
-                      <CardHeader className="space-y-4">
-                        <div className="flex items-start justify-between gap-4">
-                          <div className="flex-1">
-                            <CardTitle className="text-xl mb-3 flex items-center gap-2">
-                              {locale === 'ar' ? position.title : position.titleEn}
-                              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
-                            </CardTitle>
-                            <div className="flex gap-2 flex-wrap">
-                              {position.employmentType && (
-                                <Badge variant="outline" className="text-xs">
-                                  <Clock className="h-3 w-3 mr-1" />
-                                  {position.employmentType === 'full-time' ? t('positions.fullTime') : t('positions.projectBased')}
-                                </Badge>
+                                  <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
+                                    {t('positions.vacant')}
+                                  </Badge>
+                                  {isOpenForApply && !isFilled && (
+                                    <div className="relative">
+                                      <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
+                                      <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-xs px-4 py-2 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
+                                        <Sparkles className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                                        {locale === 'ar' ? '✨ التقديم مفتوح' : '✨ Apply Open'}
+                                      </Badge>
+                                    </div>
+                                  )}
+                                </>
                               )}
-                              <Badge variant="default" className="shadow-sm">
-                                {position.count} {locale === 'ar' ? 'وظيفة' : 'position(s)'}
-                              </Badge>
-                              <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
-                                {t('positions.vacant')}
-                              </Badge>
                             </div>
                           </div>
                         </div>
@@ -524,18 +443,135 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                             })}
                           </ul>
                         </div>
-                        <div className="pt-4 border-t">
-                          <Link href={`/${locale}/careers/apply/${encodeURIComponent(locale === 'ar' ? position.title : position.titleEn)}`}>
-                            <Button className="w-full group/btn relative overflow-hidden" size="lg">
-                              <span className="relative z-10 flex items-center justify-center gap-2">
-                                <Send className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
-                                {t('positions.applyNow')}
-                                <TrendingUp className="h-4 w-4 group-hover/btn:translate-y-[-2px] transition-transform" />
-                              </span>
-                              <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/10 to-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
-                            </Button>
-                          </Link>
+                        {!isFilled && (
+                          <div className="pt-4 border-t">
+                            <Link href={`/${locale}/careers/apply/${encodeURIComponent(locale === 'ar' ? position.title : position.titleEn)}`}>
+                              <Button className="w-full group/btn relative overflow-hidden" size="lg">
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  <Send className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                                  {t('positions.applyNow')}
+                                  <TrendingUp className="h-4 w-4 group-hover/btn:translate-y-[-2px] transition-transform" />
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/10 to-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                              </Button>
+                            </Link>
+                          </div>
+                        )}
+                      </CardContent>
+                    </Card>
+                  );
+                })}
+            </div>
+          </section>
+
+          {/* Content Team */}
+          {contentPositions.length > 0 && (
+            <section className="space-y-6">
+              <div className="flex items-center gap-3 pb-4 border-b-2">
+                <div className="p-3 rounded-xl bg-gradient-to-br from-pink-500/20 to-pink-500/5">
+                  <PenTool className="h-6 w-6 text-pink-600 dark:text-pink-400" />
+                </div>
+                <div>
+                  <h3 className="text-3xl font-bold">{t('positions.content')}</h3>
+                  <p className="text-sm text-muted-foreground">{contentPositions.length} {locale === 'ar' ? 'وظيفة' : 'positions'}</p>
+                </div>
+              </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {contentPositions.map((position, index) => {
+                  const isFilled = !!position.filledBy;
+                  const requirements = locale === 'ar' ? position.requirements : position.requirementsEn;
+                  const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
+                  const isOpenForApply = isOpenForApplication(position);
+                  return (
+                    <Card
+                      key={index}
+                      id={positionId}
+                      className="scroll-mt-24 border-2 border-border hover:border-primary/40 bg-card transition-all duration-300 hover:shadow-xl group hover:-translate-y-1"
+                    >
+                      <CardHeader className="space-y-4">
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <CardTitle className="text-xl mb-3 flex items-center gap-2">
+                              {locale === 'ar' ? position.title : position.titleEn}
+                              <Sparkles className="h-4 w-4 text-primary animate-pulse" />
+                            </CardTitle>
+                            <div className="flex gap-2 flex-wrap">
+                              {position.employmentType && (
+                                <Badge variant="outline" className="text-xs">
+                                  <Clock className="h-3 w-3 mr-1" />
+                                  {position.employmentType === 'full-time' ? t('positions.fullTime') : t('positions.projectBased')}
+                                </Badge>
+                              )}
+                              <Badge variant="default" className="shadow-sm">
+                                {position.count} {locale === 'ar' ? 'وظيفة' : 'position(s)'}
+                              </Badge>
+                              <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
+                                {t('positions.vacant')}
+                              </Badge>
+                              {isOpenForApply && !isFilled && (
+                                <div className="relative">
+                                  <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
+                                  <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-xs px-4 py-2 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
+                                    <Sparkles className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                                    {locale === 'ar' ? '✨ التقديم مفتوح' : '✨ Apply Open'}
+                                  </Badge>
+                                </div>
+                              )}
+                            </div>
+                          </div>
                         </div>
+                      </CardHeader>
+                      <CardContent className="space-y-4">
+                        <div className="space-y-2 max-h-64 overflow-y-auto pr-2 custom-scrollbar">
+                          <ul className="space-y-2">
+                            {requirements.map((req, idx) => {
+                              const isBonus = req.startsWith('⭐');
+                              const isSection = req.startsWith('---');
+                              const isEmpty = req.trim() === '';
+                              const cleanReq = isBonus ? req.substring(2).trim() : req.replace(/^---\s*/, '').replace(/\s*---$/, '').trim();
+
+                              if (isEmpty) {
+                                return <li key={idx} className="h-2" />;
+                              }
+
+                              if (isSection) {
+                                return (
+                                  <li key={idx} className="pt-3 pb-1.5 first:pt-0">
+                                    <h4 className="text-xs font-bold uppercase tracking-wider text-primary/90 flex items-center gap-2">
+                                      <div className="h-px flex-1 bg-primary/20" />
+                                      {cleanReq}
+                                      <div className="h-px flex-1 bg-primary/20" />
+                                    </h4>
+                                  </li>
+                                );
+                              }
+
+                              return (
+                                <li key={idx} className="text-sm flex items-start gap-2.5 pl-1 group/item">
+                                  <CheckCircle2 className="h-3.5 w-3.5 text-primary/70 mt-0.5 flex-shrink-0 group-hover/item:text-primary transition-colors" />
+                                  <span className="text-muted-foreground leading-relaxed">
+                                    {isBonus && <span className="text-yellow-600 dark:text-yellow-400">⭐ </span>}
+                                    {cleanReq}
+                                  </span>
+                                </li>
+                              );
+                            })}
+                          </ul>
+                        </div>
+                        {!isFilled && (
+                          <div className="pt-4 border-t">
+                            <Link href={`/${locale}/careers/apply/${encodeURIComponent(locale === 'ar' ? position.title : position.titleEn)}`}>
+                              <Button className="w-full group/btn relative overflow-hidden" size="lg">
+                                <span className="relative z-10 flex items-center justify-center gap-2">
+                                  <Send className="h-4 w-4 group-hover/btn:translate-x-1 transition-transform" />
+                                  {t('positions.applyNow')}
+                                  <TrendingUp className="h-4 w-4 group-hover/btn:translate-y-[-2px] transition-transform" />
+                                </span>
+                                <div className="absolute inset-0 bg-gradient-to-r from-primary/0 via-primary-foreground/10 to-primary/0 translate-x-[-100%] group-hover/btn:translate-x-[100%] transition-transform duration-700" />
+                              </Button>
+                            </Link>
+                          </div>
+                        )}
                       </CardContent>
                     </Card>
                   );
@@ -561,6 +597,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                   const isFilled = !!position.filledBy;
                   const requirements = locale === 'ar' ? position.requirements : position.requirementsEn;
                   const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
+                  const isOpenForApply = isOpenForApplication(position);
                   return (
                     <Card
                       key={index}
@@ -607,6 +644,15 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                                   <Badge className="bg-blue-500/20 text-blue-700 dark:text-blue-300 border-blue-500/30">
                                     {t('positions.vacant')}
                                   </Badge>
+                                  {isOpenForApply && !isFilled && (
+                                    <div className="relative">
+                                      <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
+                                      <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-xs px-4 py-2 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
+                                        <Sparkles className="h-3.5 w-3.5 mr-1.5 animate-spin" />
+                                        {locale === 'ar' ? '✨ التقديم مفتوح' : '✨ Apply Open'}
+                                      </Badge>
+                                    </div>
+                                  )}
                                 </>
                               )}
                             </div>
@@ -689,7 +735,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                   const isFilled = !!position.filledBy;
                   const requirements = locale === 'ar' ? position.requirements : position.requirementsEn;
                   const positionId = (locale === 'ar' ? position.title : position.titleEn).toLowerCase().replace(/\s+/g, '-');
-                  const isMarketingSpecialist = position.title === 'أخصائي تسويق رقمي' || position.titleEn === 'Digital Marketing Specialist';
+                  const isOpenForApply = isOpenForApplication(position);
                   return (
                     <Card
                       key={index}
@@ -738,7 +784,7 @@ export default async function CareersPage({ params }: { params: Promise<{ locale
                                   </Badge>
                                 </>
                               )}
-                              {isMarketingSpecialist && !isFilled && (
+                              {isOpenForApply && !isFilled && (
                                 <div className="relative">
                                   <div className="absolute inset-0 bg-gradient-to-r from-green-400 via-emerald-400 to-green-400 rounded-full blur-md opacity-75 animate-ping" />
                                   <Badge className="relative bg-gradient-to-r from-green-500 via-emerald-500 to-green-500 text-white font-bold text-xs px-4 py-2 shadow-xl border-2 border-white/80 hover:scale-105 transition-transform">
